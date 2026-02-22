@@ -1,0 +1,26 @@
+[
+  {
+    "lat": 40.9144,
+    "lng": -73.1230,
+    "timestamp": "2026-02-22T04:00:00.000000",
+    "label": "Student Activity Center — High Activity"
+  },
+  {
+    "lat": 40.9167,
+    "lng": -73.1188,
+    "timestamp": "2026-02-22T04:00:00.000000",
+    "label": "Staller Center & Steps — Events"
+  },
+  {
+    "lat": 40.9155,
+    "lng": -73.1255,
+    "timestamp": "2026-02-22T04:00:00.000000",
+    "label": "Academic Mall — Construction & Crowds"
+  },
+  {
+    "lat": 40.9125,
+    "lng": -73.1220,
+    "timestamp": "2026-02-22T04:00:00.000000",
+    "label": "Javits Center — Class Change Rush"
+  }
+]

@@ -1,0 +1,681 @@
+/* ================================================================
+   Marauder's Map of Sensory Safety — Stylesheet
+   ================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=MedievalSharp&family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;700&display=swap');
+
+/* ── CSS Custom Properties ──────────────────────────────────────── */
+:root {
+  --parchment: #faf0d7;
+  --parchment-dark: #c8a86e;
+  --ink: #1a0c06;
+  --ink-light: #3d1e10;
+  --danger-red: #a00000;
+  --patronus-blue: #5ab8d8;
+  --patronus-glow: #90dcff;
+  --gold: #b8912a;
+  --gold-bright: #e8c040;
+}
+
+/* ── Reset & Base ───────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Cinzel', serif;
+  background: var(--parchment);
+  color: var(--ink);
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* ── Loading Screen ─────────────────────────────────────────────── */
+#loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(ellipse at center, #f4e4bcee 0%, #c9a84c55 70%, #2c181088 100%),
+    url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23n)' opacity='.12'/%3E%3C/svg%3E");
+  background-color: var(--parchment);
+  transition: opacity 1s ease, visibility 1s ease;
+}
+
+#loading-screen.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+#loading-screen .oath {
+  font-family: 'MedievalSharp', cursive;
+  font-size: clamp(1.4rem, 4vw, 2.8rem);
+  color: var(--ink);
+  text-align: center;
+  animation: lumos-flicker 2s ease-in-out infinite alternate;
+  text-shadow: 0 0 8px var(--gold), 0 0 20px var(--gold-bright);
+  max-width: 80vw;
+}
+
+#loading-screen .footprints {
+  margin-top: 2rem;
+  font-size: 2rem;
+  animation: walk 1.2s steps(4) infinite;
+  opacity: 0.6;
+}
+
+@keyframes walk {
+  0% {
+    transform: translateX(-30px);
+    opacity: 0.3;
+  }
+
+  50% {
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: translateX(30px);
+    opacity: 0.3;
+  }
+}
+
+/* ── Lumos Flicker ──────────────────────────────────────────────── */
+@keyframes lumos-flicker {
+  0% {
+    opacity: 0.85;
+    text-shadow: 0 0 8px var(--gold), 0 0 20px var(--gold-bright);
+  }
+
+  25% {
+    opacity: 1;
+    text-shadow: 0 0 12px var(--gold), 0 0 30px var(--gold-bright);
+  }
+
+  50% {
+    opacity: 0.9;
+    text-shadow: 0 0 6px var(--gold), 0 0 15px var(--gold-bright);
+  }
+
+  75% {
+    opacity: 1;
+    text-shadow: 0 0 14px var(--gold), 0 0 35px var(--gold-bright);
+  }
+
+  100% {
+    opacity: 0.88;
+    text-shadow: 0 0 10px var(--gold), 0 0 25px var(--gold-bright);
+  }
+}
+
+/* ── Layout ─────────────────────────────────────────────────────── */
+#app-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* ── Sidebar ────────────────────────────────────────────────────── */
+#sidebar {
+  width: 340px;
+  min-width: 280px;
+  background:
+    linear-gradient(135deg, var(--parchment) 0%, var(--parchment-dark) 100%);
+  border-right: 4px solid var(--ink);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  box-shadow: 4px 0 24px rgba(26, 12, 6, 0.4);
+  position: relative;
+  z-index: 100;
+}
+
+#sidebar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.5' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='.06'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+.sidebar-header {
+  padding: 1.5rem 1.2rem 1rem;
+  text-align: center;
+  border-bottom: 3px solid var(--ink);
+}
+
+.sidebar-header h1 {
+  font-family: 'Cinzel Decorative', cursive;
+  font-size: 1.3rem;
+  color: var(--ink);
+  text-shadow: 1px 1px 0 var(--gold), 0 0 4px rgba(184, 145, 42, 0.3);
+  letter-spacing: 0.05em;
+  line-height: 1.4;
+  font-weight: 900;
+}
+
+.sidebar-header .subtitle {
+  font-family: 'MedievalSharp', cursive;
+  font-size: 0.85rem;
+  color: var(--ink-light);
+  margin-top: 0.3rem;
+  animation: lumos-flicker 3s ease-in-out infinite alternate;
+}
+
+/* ── Legend ──────────────────────────────────────────────────────── */
+.legend {
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid var(--ink-light);
+}
+
+.legend h3 {
+  font-family: 'MedievalSharp', cursive;
+  font-size: 1rem;
+  margin-bottom: 0.6rem;
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.legend-swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2.5px solid var(--ink);
+  flex-shrink: 0;
+}
+
+.legend-swatch.danger {
+  background: var(--danger-red);
+  box-shadow: 0 0 6px var(--danger-red);
+}
+
+.legend-swatch.safe {
+  background: var(--patronus-blue);
+  box-shadow: 0 0 6px var(--patronus-glow);
+}
+
+/* ── Danger Log ─────────────────────────────────────────────────── */
+.danger-log {
+  flex: 1;
+  padding: 1rem 1.2rem;
+  overflow-y: auto;
+}
+
+.danger-log h3 {
+  font-family: 'MedievalSharp', cursive;
+  font-size: 0.95rem;
+  margin-bottom: 0.6rem;
+}
+
+.danger-entry {
+  background: rgba(160, 0, 0, 0.12);
+  border-left: 4px solid var(--danger-red);
+  border-radius: 0 6px 6px 0;
+  padding: 0.5rem 0.7rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.78rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+  color: var(--ink);
+}
+
+.danger-entry:hover {
+  transform: translateX(4px);
+  box-shadow: 2px 2px 8px rgba(139, 0, 0, 0.2);
+}
+
+.danger-entry .coords {
+  font-family: monospace;
+  color: var(--ink-light);
+}
+
+.danger-entry .time {
+  color: var(--danger-red);
+  font-weight: 700;
+}
+
+.no-entries {
+  font-family: 'MedievalSharp', cursive;
+  color: var(--ink-light);
+  font-style: italic;
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 2rem 0;
+}
+
+/* ── Actions ────────────────────────────────────────────────────── */
+.sidebar-actions {
+  padding: 1rem 1.2rem;
+  border-top: 3px solid var(--ink);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.btn-magic {
+  font-family: 'MedievalSharp', cursive;
+  font-size: 0.9rem;
+  padding: 0.65rem 1rem;
+  border: 2.5px solid var(--ink);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #8b0000, #a0001a);
+  color: var(--parchment);
+}
+
+.btn-danger:hover {
+  box-shadow: 0 0 14px rgba(139, 0, 0, 0.5);
+  transform: translateY(-2px);
+}
+
+.btn-clear {
+  background: transparent;
+  color: var(--ink-light);
+}
+
+.btn-clear:hover {
+  background: rgba(44, 24, 16, 0.08);
+}
+
+/* ── Map Container ──────────────────────────────────────────────── */
+#map-container {
+  flex: 1;
+  position: relative;
+}
+
+#map {
+  width: 100%;
+  height: 100%;
+}
+
+/* Antique sepia filter removed to improve visibility of red danger zones */
+.leaflet-tile-pane {
+  filter: saturate(1.1) brightness(0.95) contrast(1.1);
+}
+
+/* ── Custom Dementor Marker ─────────────────────────────────────── */
+.dementor-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  animation: dementor-pulse 2s ease-in-out infinite;
+}
+
+.dementor-marker svg {
+  filter: drop-shadow(0 0 8px rgba(160, 0, 0, 0.85));
+}
+
+@keyframes dementor-pulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+
+/* ── Safe-point (Patronus) Marker ───────────────────────────────── */
+.patronus-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  animation: patronus-glow 2.5s ease-in-out infinite alternate;
+}
+
+@keyframes patronus-glow {
+  0% {
+    filter: drop-shadow(0 0 4px var(--patronus-blue));
+  }
+
+  100% {
+    filter: drop-shadow(0 0 12px var(--patronus-glow));
+  }
+}
+
+/* ── Leaflet popup theming ──────────────────────────────────────── */
+.leaflet-popup-content-wrapper {
+  background: var(--parchment) !important;
+  border: 3px solid var(--ink) !important;
+  border-radius: 8px !important;
+  font-family: 'Cinzel', serif !important;
+  color: var(--ink) !important;
+  box-shadow: 0 4px 20px rgba(26, 12, 6, 0.45) !important;
+}
+
+.leaflet-popup-tip {
+  background: var(--parchment) !important;
+  border: 1px solid var(--ink-light) !important;
+}
+
+.popup-title {
+  font-family: 'MedievalSharp', cursive;
+  font-size: 1rem;
+  color: var(--danger-red);
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+}
+
+.popup-coords {
+  font-family: monospace;
+  font-size: 0.78rem;
+  color: var(--ink);
+}
+
+/* ── Search Section ─────────────────────────────────────────────── */
+.search-section {
+  padding: 1rem 1.2rem;
+  border-bottom: 3px solid var(--ink);
+}
+
+.search-section h3 {
+  font-family: 'MedievalSharp', cursive;
+  font-size: 1rem;
+  margin-bottom: 0.7rem;
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.search-field {
+  margin-bottom: 0.6rem;
+  position: relative;
+}
+
+.search-field label {
+  display: block;
+  font-family: 'MedievalSharp', cursive;
+  font-size: 0.8rem;
+  color: var(--ink);
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+.search-input-wrap {
+  display: flex;
+  gap: 4px;
+}
+
+.search-input-wrap input {
+  flex: 1;
+  padding: 0.5rem 0.65rem;
+  border: 2.5px solid var(--ink);
+  border-radius: 6px;
+  background: rgba(250, 240, 215, 0.8);
+  font-family: 'Cinzel', serif;
+  font-size: 0.78rem;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-input-wrap input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 8px rgba(184, 145, 42, 0.4);
+}
+
+.search-input-wrap input::placeholder {
+  color: #8a6a50;
+  font-style: italic;
+}
+
+.btn-loc {
+  padding: 0.4rem 0.5rem;
+  border: 2.5px solid var(--ink);
+  border-radius: 6px;
+  background: rgba(250, 240, 215, 0.8);
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.btn-loc:hover {
+  background: var(--gold);
+  box-shadow: 0 0 6px rgba(184, 145, 42, 0.5);
+}
+
+/* ── Search Results Dropdown ──────────────────────────────────── */
+.search-results {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 200;
+  background: var(--parchment);
+  border: 2.5px solid var(--ink);
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  max-height: 180px;
+  overflow-y: auto;
+  box-shadow: 0 6px 16px rgba(26, 12, 6, 0.3);
+}
+
+.search-result-item {
+  padding: 0.5rem 0.65rem;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(61, 30, 16, 0.15);
+  transition: background 0.15s;
+}
+
+.search-result-item:hover {
+  background: rgba(184, 145, 42, 0.2);
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.result-name {
+  display: block;
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  color: var(--ink);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.result-coords {
+  display: block;
+  font-family: monospace;
+  font-size: 0.65rem;
+  color: var(--ink-light);
+  margin-top: 1px;
+}
+
+.no-results {
+  cursor: default;
+  color: var(--ink-light);
+  font-style: italic;
+  font-size: 0.78rem;
+}
+
+/* ── Route Button ──────────────────────────────────────────────── */
+.btn-route {
+  width: 100%;
+  margin-top: 0.5rem;
+  background: linear-gradient(135deg, #1a5c0a, #2d8a1e);
+  color: var(--parchment);
+  font-size: 0.95rem;
+  padding: 0.7rem;
+  font-weight: 700;
+}
+
+.btn-route:hover {
+  box-shadow: 0 0 14px rgba(45, 138, 30, 0.5);
+  transform: translateY(-2px);
+}
+
+.btn-route:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* ── Route Results ─────────────────────────────────────────────── */
+.route-results {
+  padding: 0.8rem 1.2rem;
+  border-bottom: 3px solid var(--ink);
+}
+
+.route-results h3 {
+  font-family: 'MedievalSharp', cursive;
+  font-size: 1rem;
+  margin-bottom: 0.6rem;
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.route-card {
+  background: rgba(250, 240, 215, 0.6);
+  border-left: 5px solid #888;
+  border-radius: 0 8px 8px 0;
+  padding: 0.6rem 0.7rem;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.route-card:hover {
+  transform: translateX(4px);
+  box-shadow: 2px 2px 10px rgba(26, 12, 6, 0.2);
+}
+
+.route-recommended {
+  background: rgba(46, 204, 64, 0.1);
+  box-shadow: 0 0 8px rgba(46, 204, 64, 0.15);
+}
+
+.route-tag {
+  font-family: 'MedievalSharp', cursive;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 0.25rem;
+}
+
+.route-stats {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.76rem;
+  color: var(--ink);
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+
+.badge {
+  display: inline-block;
+  font-family: 'MedievalSharp', cursive;
+  font-size: 0.72rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.badge-safe {
+  background: rgba(46, 204, 64, 0.18);
+  color: #1a5c0a;
+  border: 1.5px solid #2ecc40;
+}
+
+.badge-danger {
+  background: rgba(204, 0, 0, 0.12);
+  color: #8b0000;
+  border: 1.5px solid #cc0000;
+}
+
+.route-rec-label {
+  font-family: 'MedievalSharp', cursive;
+  font-size: 0.68rem;
+  color: var(--gold);
+  font-weight: 700;
+  margin-top: 0.3rem;
+  text-shadow: 0 0 4px rgba(184, 145, 42, 0.4);
+}
+
+.btn-clear-sm {
+  width: 100%;
+  margin-top: 0.4rem;
+  background: transparent;
+  color: var(--ink-light);
+  font-size: 0.78rem;
+  padding: 0.4rem;
+}
+
+.btn-clear-sm:hover {
+  background: rgba(26, 12, 6, 0.08);
+}
+
+/* ── Route Pins (A/B markers) ─────────────────────────────────── */
+.route-pin {
+  width: 26px;
+  height: 26px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  font-weight: 900;
+  color: #fff;
+  border: 2px solid var(--ink);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.route-pin>* {
+  transform: rotate(45deg);
+}
+
+.start-pin {
+  background: linear-gradient(135deg, #2ecc40, #1a8c2a);
+}
+
+.end-pin {
+  background: linear-gradient(135deg, #e74c3c, #a00000);
+}
+
+/* ── Responsive ─────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  #app-container {
+    flex-direction: column;
+  }
+
+  #sidebar {
+    width: 100%;
+    min-width: unset;
+    max-height: 45vh;
+    border-right: none;
+    border-bottom: 4px solid var(--ink);
+  }
+}

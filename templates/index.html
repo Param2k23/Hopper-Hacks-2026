@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Marauder's Map — Sensory Safety</title>
+  <meta name="description"
+    content="A magical map that reveals Dementor Presence zones and guides you through Patronus Protected paths." />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+
+<body>
+
+  <!-- LOADING SCREEN -->
+  <div id="loading-screen">
+    <div class="oath">I solemnly swear that I am up to no good...</div>
+    <div class="footprints">🐾 &nbsp; 🐾 &nbsp; 🐾</div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="app-container">
+
+    <!-- Sidebar -->
+    <aside id="sidebar">
+      <div class="sidebar-header">
+        <h1>The Marauder's Map<br />of Sensory Safety</h1>
+        <p class="subtitle">✦ Managed by Moony, Wormtail, Padfoot &amp; Prongs ✦</p>
+      </div>
+
+      <!-- SEARCH / ROUTE PLANNER -->
+      <div class="search-section">
+        <h3>🗺️ Plan Your Journey</h3>
+
+        <div class="search-field">
+          <label>From</label>
+          <div class="search-input-wrap">
+            <input type="text" id="search-from" placeholder="Current location or search..." autocomplete="off" />
+            <button class="btn-loc" id="btn-my-loc" title="Use my location">📍</button>
+          </div>
+          <div class="search-results" id="results-from"></div>
+        </div>
+
+        <div class="search-field">
+          <label>To (Destination)</label>
+          <div class="search-input-wrap">
+            <input type="text" id="search-to" placeholder="Search destination..." autocomplete="off" />
+          </div>
+          <div class="search-results" id="results-to"></div>
+        </div>
+
+        <button class="btn-magic btn-route" id="btn-find-route">⚡ Find Safe Route</button>
+      </div>
+
+      <!-- ROUTE RESULTS -->
+      <div class="route-results" id="route-results" style="display:none;">
+        <h3>🧭 Route Options</h3>
+        <div id="route-list"></div>
+        <button class="btn-magic btn-clear-sm" id="btn-clear-routes">✕ Clear Routes</button>
+      </div>
+
+      <!-- Legend -->
+      <div class="legend">
+        <h3>⚡ Map Legend</h3>
+        <div class="legend-item">
+          <span class="legend-swatch danger"></span>
+          <span>Dementor Presence Detected</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-swatch safe"></span>
+          <span>Patronus Protected Areas</span>
+        </div>
+      </div>
+
+      <!-- Danger log -->
+      <div class="danger-log">
+        <h3>🖤 Dark Sightings</h3>
+        <div id="danger-list">
+          <p class="no-entries">No Dementor activity detected... yet.</p>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="sidebar-actions">
+        <button class="btn-magic btn-danger" id="btn-add-danger">☠️ Summon Dementor (Test)</button>
+        <button class="btn-magic btn-clear" id="btn-clear">🧹 Mischief Managed (Clear)</button>
+      </div>
+    </aside>
+
+    <!-- Map -->
+    <div id="map-container">
+      <div id="map"></div>
+    </div>
+
+  </div>
+
+  <!-- SCRIPTS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    (function () {
+      "use strict";
+
+      // ── Loading screen ──────────────────────────────────────────
+      setTimeout(() => {
+        document.getElementById("loading-screen").classList.add("hidden");
+      }, 3500);
+
+      // ── SVG Icons ───────────────────────────────────────────────
+      const DEMENTOR_SVG = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="34" height="34">
+      <defs><radialGradient id="dg" cx="50%" cy="40%" r="50%">
+        <stop offset="0%" stop-color="#c0392b"/><stop offset="100%" stop-color="#4a0000"/>
+      </radialGradient></defs>
+      <path d="M32 4C20 4 12 16 12 28C12 36 16 42 20 46L20 58C20 60 22 62 24 62L40 62C42 62 44 60 44 58L44 46C48 42 52 36 52 28C52 16 44 4 32 4Z" fill="url(#dg)" stroke="#2c1810" stroke-width="1.5"/>
+      <ellipse cx="32" cy="24" rx="10" ry="12" fill="#1a0a06" opacity="0.85"/>
+      <ellipse cx="28" cy="22" rx="2.5" ry="1.5" fill="#c0392b" opacity="0.9"/>
+      <ellipse cx="36" cy="22" rx="2.5" ry="1.5" fill="#c0392b" opacity="0.9"/>
+      <path d="M20 58L18 62L22 60L24 64L26 60L28 63L30 60L32 64L34 60L36 63L38 60L40 64L42 60L44 62L44 58" fill="url(#dg)" stroke="#2c1810" stroke-width="0.8"/>
+    </svg>`;
+
+      const PATRONUS_SVG = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="28" height="28">
+      <defs><radialGradient id="pg" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#a8e6ff"/><stop offset="100%" stop-color="#4db8d8"/>
+      </radialGradient></defs>
+      <circle cx="24" cy="24" r="20" fill="url(#pg)" stroke="#7ec8e3" stroke-width="2" opacity="0.9"/>
+      <text x="24" y="30" text-anchor="middle" font-size="20" fill="#fff">🛡️</text>
+    </svg>`;
+
+      // ── SBU Coordinates ─────────────────────────────────────────
+      const SAC_BUS_STOP = [40.91380, -73.12360];
+      const MELVILLE_LIBRARY = [40.91570, -73.12070];
+      const SAC_FRONT_DANGER = [
+        [40.91410, -73.12360], [40.91410, -73.12240],
+        [40.91450, -73.12220], [40.91470, -73.12280], [40.91460, -73.12370],
+      ];
+      const SAC_FRONT_CENTER = [40.91440, -73.12290];
+
+      // ── Main Map Init ───────────────────────────────────────────
+      const map = L.map("map", {
+        center: [40.91470, -73.12280],
+        zoom: 16,
+        zoomControl: true,
+      });
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+        maxZoom: 19,
+      }).addTo(map);
+
+      // ── Icon helpers ────────────────────────────────────────────
+      function makeDementorIcon() {
+        return L.divIcon({
+          html: `<div class="dementor-marker">${DEMENTOR_SVG}</div>`,
+          className: "", iconSize: [36, 36], iconAnchor: [18, 36], popupAnchor: [0, -36],
+        });
+      }
+      function makePatronusIcon() {
+        return L.divIcon({
+          html: `<div class="patronus-marker">${PATRONUS_SVG}</div>`,
+          className: "", iconSize: [32, 32], iconAnchor: [16, 32], popupAnchor: [0, -32],
+        });
+      }
+
+      // SAC & Melville markers
+      L.marker(SAC_BUS_STOP, { icon: makePatronusIcon() })
+        .bindPopup(`<div class="popup-title">🚌 SAC Bus Stop</div><div class="popup-coords">Patronus Protected Area</div>`)
+        .addTo(map);
+      L.marker(MELVILLE_LIBRARY, { icon: makePatronusIcon() })
+        .bindPopup(`<div class="popup-title">📚 Melville Library</div><div class="popup-coords">Patronus Protected Area</div>`)
+        .addTo(map);
+
+      // ── Danger layer ────────────────────────────────────────────
+      const dangerLayer = L.layerGroup().addTo(map);
+      let knownIds = new Set();
+      function pointId(p) { return p.lat.toFixed(6) + "," + p.lng.toFixed(6); }
+
+      function renderDangerList(points) {
+        const el = document.getElementById("danger-list");
+        if (!points.length) {
+          el.innerHTML = '<p class="no-entries">No Dementor activity detected... yet.</p>';
+          return;
+        }
+        el.innerHTML = points.slice().reverse().map(p => `
+      <div class="danger-entry">
+        <div class="time">☠️ ${p.label || "Dementor Presence Detected"}</div>
+        <div class="coords">${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}</div>
+        <div style="font-size:0.7rem;color:#3d1e10;margin-top:2px;">
+          ${p.timestamp ? new Date(p.timestamp).toLocaleString() : ""}
+        </div>
+      </div>`).join("");
+      }
+
+      async function fetchDangers() {
+        try {
+          const res = await fetch("/api/dangers");
+          const points = await res.json();
+          dangerLayer.clearLayers();
+          knownIds.clear();
+          points.forEach(p => {
+
+            // Draw the Dementor icon
+            const marker = L.marker([p.lat, p.lng], { icon: makeDementorIcon() })
+              .bindPopup(`<div class="popup-title">☠️ ${p.label || "Dementor Presence Detected"}</div>
+            <div class="popup-coords">${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}</div>`)
+              .addTo(dangerLayer);
+
+            // Draw the 80m Danger Radius Circle - MAXIMUM VISIBILITY
+            const circle = L.circle([parseFloat(p.lat), parseFloat(p.lng)], {
+              color: "#ff0000",
+              weight: 6,
+              fillColor: "#ff0000",
+              fillOpacity: 0.65,
+              dashArray: null,
+              radius: 80, // Increased radius for better visibility
+              interactive: true,
+              pane: 'overlayPane'
+            }).addTo(dangerLayer);
+
+            circle.bindPopup(`<div class="popup-title">☠️ Danger Zone</div>
+            <div class="popup-coords">${p.label || "Avoid this area"}</div>`);
+
+            circle.bringToFront();
+
+
+          });
+          renderDangerList(points);
+        } catch (e) { console.warn("Fetch dangers failed:", e); }
+      }
+      fetchDangers();
+      setInterval(fetchDangers, 5000);
+
+      // ── Button: Summon Dementor ─────────────────────────────────
+      document.getElementById("btn-add-danger").addEventListener("click", async () => {
+        try {
+          const res = await fetch("/api/danger", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+          const data = await res.json();
+          if (data.point) map.flyTo([data.point.lat, data.point.lng], 17, { duration: 0.8 });
+          fetchDangers();
+        } catch (e) { console.error(e); }
+      });
+
+      // ── Button: Clear ───────────────────────────────────────────
+      document.getElementById("btn-clear").addEventListener("click", async () => {
+        if (!confirm("Mischief Managed? This will clear all danger logs.")) return;
+        await fetch("/api/dangers/clear", { method: "POST" });
+        dangerLayer.clearLayers(); knownIds.clear(); fetchDangers();
+      });
+
+      // ═══════════════════════════════════════════════════════════
+      // SEARCH & ROUTE FEATURE
+      // ═══════════════════════════════════════════════════════════
+
+      const ROUTE_COLORS = [
+        { main: "#2ecc40", glow: "#b6f5c1", label: "Safe" },  // green
+        { main: "#ffaa00", glow: "#ffe5a0", label: "Caution" },  // amber
+        { main: "#cc0000", glow: "#ffaaaa", label: "Dangerous" },  // red
+        { main: "#9b59b6", glow: "#d9b3e8", label: "Alt" },  // purple
+      ];
+
+      let routeLayers = [];
+      let routeMarkers = [];
+      let fromCoord = null;
+      let toCoord = null;
+      let searchTimeout = null;
+
+      // ── Use my location ─────────────────────────────────────────
+      document.getElementById("btn-my-loc").addEventListener("click", () => {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            pos => {
+              fromCoord = [pos.coords.latitude, pos.coords.longitude];
+              document.getElementById("search-from").value = `📍 My Location (${fromCoord[0].toFixed(4)}, ${fromCoord[1].toFixed(4)})`;
+            },
+            () => {
+              // Fallback to SAC bus stop
+              fromCoord = SAC_BUS_STOP;
+              document.getElementById("search-from").value = "📍 SAC Bus Stop (default)";
+            }
+          );
+        } else {
+          fromCoord = SAC_BUS_STOP;
+          document.getElementById("search-from").value = "📍 SAC Bus Stop (default)";
+        }
+      });
+
+      // ── Search autocomplete ─────────────────────────────────────
+      function setupSearch(inputId, resultsId, onSelect) {
+        const input = document.getElementById(inputId);
+        const resultsEl = document.getElementById(resultsId);
+
+        input.addEventListener("input", () => {
+          clearTimeout(searchTimeout);
+          const q = input.value.trim();
+          if (q.length < 3) { resultsEl.innerHTML = ""; resultsEl.style.display = "none"; return; }
+          searchTimeout = setTimeout(async () => {
+            try {
+              const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+              const data = await res.json();
+              if (!data.length) {
+                resultsEl.innerHTML = '<div class="search-result-item no-results">No locations found</div>';
+                resultsEl.style.display = "block";
+                return;
+              }
+              resultsEl.innerHTML = data.map((r, i) => `
+            <div class="search-result-item" data-idx="${i}">
+              <span class="result-name">${truncate(r.name, 60)}</span>
+              <span class="result-coords">${r.lat.toFixed(4)}, ${r.lng.toFixed(4)}</span>
+            </div>`).join("");
+              resultsEl.style.display = "block";
+
+              resultsEl.querySelectorAll(".search-result-item[data-idx]").forEach(el => {
+                el.addEventListener("click", () => {
+                  const idx = parseInt(el.dataset.idx);
+                  const chosen = data[idx];
+                  input.value = truncate(chosen.name, 45);
+                  resultsEl.style.display = "none";
+                  onSelect([chosen.lat, chosen.lng], chosen.name);
+                });
+              });
+            } catch (e) { console.warn("Search failed:", e); }
+          }, 400);
+        });
+
+        // Close results on outside click
+        document.addEventListener("click", e => {
+          if (!input.contains(e.target) && !resultsEl.contains(e.target)) {
+            resultsEl.style.display = "none";
+          }
+        });
+      }
+
+      function truncate(s, n) { return s.length > n ? s.substring(0, n) + "…" : s; }
+
+      setupSearch("search-from", "results-from", (coord) => { fromCoord = coord; });
+      setupSearch("search-to", "results-to", (coord) => { toCoord = coord; });
+
+      // ── Find Route ──────────────────────────────────────────────
+      document.getElementById("btn-find-route").addEventListener("click", findRoute);
+
+      async function findRoute() {
+        if (!fromCoord || !toCoord) {
+          alert("Please select both a starting point and destination!");
+          return;
+        }
+
+        const btn = document.getElementById("btn-find-route");
+        btn.textContent = "🔮 Consulting the Map...";
+        btn.disabled = true;
+
+        clearRoutes();
+
+        try {
+          const res = await fetch("/api/route", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ start: fromCoord, end: toCoord }),
+          });
+          const data = await res.json();
+
+          if (!data.routes || !data.routes.length) {
+            alert("No routes found. The path may be blocked by dark magic!");
+            return;
+          }
+
+          displayRoutes(data.routes);
+
+        } catch (e) {
+          console.error("Route error:", e);
+          alert("Failed to compute route. Try again!");
+        } finally {
+          btn.textContent = "⚡ Find Safe Route";
+          btn.disabled = false;
+        }
+      }
+
+      function displayRoutes(routes) {
+        const listEl = document.getElementById("route-list");
+        const resultsEl = document.getElementById("route-results");
+        resultsEl.style.display = "block";
+
+        // Fit map to all routes
+        let allCoords = [];
+
+        listEl.innerHTML = routes.map((r, i) => {
+          const color = getRouteColor(r, i);
+          const isSafe = r.safety === "safe";
+          const dangerBadge = r.danger_info.passes_danger
+            ? `<span class="badge badge-danger">☠️ ${r.danger_info.danger_count} Dementor zone${r.danger_info.danger_count > 1 ? "s" : ""}</span>`
+            : `<span class="badge badge-safe">🛡️ Patronus Protected</span>`;
+
+          // Draw route on map
+          const coords = r.coords.map(c => [c[0], c[1]]);
+          allCoords = allCoords.concat(coords);
+
+          // Glow layer
+          const glow = L.polyline(coords, {
+            color: color.glow, weight: i === 0 ? 14 : 10,
+            opacity: 0.3, lineJoin: "round", lineCap: "round",
+          }).addTo(map);
+
+          // Main route
+          const line = L.polyline(coords, {
+            color: color.main, weight: i === 0 ? 6 : 4,
+            opacity: i === 0 ? 0.95 : 0.7,
+            dashArray: isSafe ? null : "10 6",
+            lineJoin: "round", lineCap: "round",
+          }).addTo(map);
+
+          line.bindPopup(`<div class="popup-title">${r.tag}</div>
+        <div class="popup-coords">${r.distance_m}m · ${r.duration_min} min walk</div>`);
+
+          routeLayers.push(glow, line);
+
+          // Start / end markers
+          if (i === 0) {
+            const startM = L.marker(coords[0], {
+              icon: L.divIcon({
+                html: '<div class="route-pin start-pin">A</div>',
+                className: "", iconSize: [28, 28], iconAnchor: [14, 28],
+              })
+            }).addTo(map);
+            const endM = L.marker(coords[coords.length - 1], {
+              icon: L.divIcon({
+                html: '<div class="route-pin end-pin">B</div>',
+                className: "", iconSize: [28, 28], iconAnchor: [14, 28],
+              })
+            }).addTo(map);
+            routeMarkers.push(startM, endM);
+          }
+
+          return `
+        <div class="route-card ${isSafe ? 'route-safe' : 'route-danger'} ${i === 0 ? 'route-recommended' : ''}"
+             data-idx="${i}" style="border-left-color:${color.main};">
+          <div class="route-tag">${r.tag}</div>
+          <div class="route-stats">
+            <span>📏 ${r.distance_m >= 1000 ? (r.distance_m / 1000).toFixed(1) + 'km' : r.distance_m + 'm'}</span>
+            <span>🚶 ${r.duration_min} min</span>
+          </div>
+          ${dangerBadge}
+          ${i === 0 ? '<div class="route-rec-label">✨ RECOMMENDED</div>' : ''}
+        </div>`;
+        }).join("");
+
+        // Fit bounds
+        if (allCoords.length) {
+          map.fitBounds(L.latLngBounds(allCoords), { padding: [60, 60] });
+        }
+
+        // Click to highlight
+        listEl.querySelectorAll(".route-card").forEach(card => {
+          card.addEventListener("click", () => {
+            const idx = parseInt(card.dataset.idx) * 2; // each route has 2 layers (glow+main)
+            if (routeLayers[idx + 1]) {
+              routeLayers[idx + 1].bringToFront();
+              routeLayers[idx + 1].openPopup();
+            }
+          });
+        });
+      }
+
+      function getRouteColor(route, index) {
+        if (route.safety === "safe") return ROUTE_COLORS[0]; // green
+        if (route.danger_info.passes_danger) return ROUTE_COLORS[2]; // red
+        return ROUTE_COLORS[index % ROUTE_COLORS.length];
+      }
+
+      function clearRoutes() {
+        routeLayers.forEach(l => map.removeLayer(l));
+        routeMarkers.forEach(m => map.removeLayer(m));
+        routeLayers = [];
+        routeMarkers = [];
+        document.getElementById("route-list").innerHTML = "";
+        document.getElementById("route-results").style.display = "none";
+      }
+
+      document.getElementById("btn-clear-routes").addEventListener("click", clearRoutes);
+
+    })();
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="36" height="36">
+  <!-- Dementor / Dark Mark inspired icon -->
+  <defs>
+    <radialGradient id="dg" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#c0392b"/>
+      <stop offset="100%" stop-color="#4a0000"/>
+    </radialGradient>
+  </defs>
+  <!-- Hooded cloak shape -->
+  <path d="M32 4 C20 4 12 16 12 28 C12 36 16 42 20 46 L20 58 C20 60 22 62 24 62 L40 62 C42 62 44 60 44 58 L44 46 C48 42 52 36 52 28 C52 16 44 4 32 4Z"
+        fill="url(#dg)" stroke="#2c1810" stroke-width="1.5"/>
+  <!-- Face void -->
+  <ellipse cx="32" cy="24" rx="10" ry="12" fill="#1a0a06" opacity="0.85"/>
+  <!-- Eyes -->
+  <ellipse cx="28" cy="22" rx="2.5" ry="1.5" fill="#c0392b" opacity="0.9">
+    <animate attributeName="opacity" values="0.9;0.4;0.9" dur="3s" repeatCount="indefinite"/>
+  </ellipse>
+  <ellipse cx="36" cy="22" rx="2.5" ry="1.5" fill="#c0392b" opacity="0.9">
+    <animate attributeName="opacity" values="0.9;0.4;0.9" dur="3s" repeatCount="indefinite"/>
+  </ellipse>
+  <!-- Tattered edges -->
+  <path d="M20 58 L18 62 L22 60 L24 64 L26 60 L28 63 L30 60 L32 64 L34 60 L36 63 L38 60 L40 64 L42 60 L44 62 L44 58"
+        fill="url(#dg)" stroke="#2c1810" stroke-width="0.8"/>
+</svg>
