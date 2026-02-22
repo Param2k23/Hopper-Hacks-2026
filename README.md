@@ -1,8 +1,8 @@
-# ✦ Sensory Safety Marauder's Map ✦
+# ✦ Sensus Revelio ✦
 
 **"I solemnly swear that I am up to no good... but also searching for a safe path."**
 
-The **Sensory Safety Marauder's Map** is a premium, interactive Potter-themed navigation engine designed to help neurodivergent individuals and sensory-sensitive students navigate complex environments. By fusing real-time hardware data with a state-of-the-art "Magical Glass" UI, it detects **Dementor Zones** (high-stimulation areas like loud noises or crowds) and yields **Patronus Protected** safe-harbor routes.
+**Sensus Revelio** is a premium, interactive Potter-themed navigation engine designed to help neurodivergent individuals and sensory-sensitive students navigate complex environments. By fusing real-time hardware data with a state-of-the-art "Magical Glass" UI, it detects **Dementor Zones** (high-stimulation areas like loud noises or crowds) and yields **Patronus Protected** safe-harbor routes.
 
 ---
 
