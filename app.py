@@ -26,7 +26,7 @@ DATA_FILE = os.path.join(os.path.dirname(__file__), "map_data.json")
 DEDUP_RADIUS_METERS = 50   # 50m radius for danger zones (one zone per 50m)
 DANGER_PROXIMITY_M = 80    # Matches the 80m visual radius in index.html
 
-GOOGLE_MAPS_API_KEY = "YOUR_API_KEY_HERE"  # Add your Google Maps API Key here!
+GOOGLE_MAPS_API_KEY = "AIzaSyCBkiee_eQ5svMZ9Yec7f0lRx7Mt7gB9qQ"  # Add your Google Maps API Key here!
 
 # Stony Brook University — SAC bus stop area
 DEFAULT_LAT = 40.91420
